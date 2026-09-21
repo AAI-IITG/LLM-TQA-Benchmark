@@ -1,0 +1,65 @@
+benchmark:
+  name: phm-temporal-qa
+  version: "0.1"
+  seed: 20260904
+  primary_domain: turbofan_prognostics
+  primary_dataset: cmapss
+  primary_subset: FD001
+
+scope:
+  include:
+    - sensor_state_at_cycle
+    - sensor_threshold_crossing_order
+    - duration_to_failure
+    - remaining_useful_life
+    - within_unit_trend_comparison
+    - cross_unit_lifetime_ranking
+  exclude_until_supported:
+    - maintenance_timing
+    - calendar_time
+    - per_unit_fault_mode_onset
+    - causal_fault_explanations
+    - free_form_maintenance_advice
+
+event_derivation:
+  fit_scope: training_units_only
+  forbid_test_distribution_fitting: true
+  onset_is_derived_not_observed: true
+  threshold_parameters_must_be_recorded: true
+  implementation_version_required: true
+
+question_generation:
+  semantics_source: executable_program
+  templates_are_canonical: true
+  llm_role: paraphrase_only
+  paraphrase_must_preserve_answer: true
+  require_gold_fact_ids: true
+  forbid_predicted_gold_facts: true
+
+splits:
+  primary_group: unit_id
+  secondary_group: paraphrase_family_id
+  keep_paraphrases_together: true
+  stratify_by:
+    - question_type
+    - template_family_id
+  forbid_random_qa_row_split: true
+  partitions:
+    dev: 0.20
+    test: 0.60
+    hard: 0.20
+
+evaluation:
+  primary_metrics:
+    - exact_match
+    - typed_accuracy
+  numeric_metrics:
+    - absolute_error
+    - tolerance_accuracy
+  report_by:
+    - question_type
+    - temporal_operator
+    - difficulty
+    - context_representation
+    - model
+    - prompting_condition
